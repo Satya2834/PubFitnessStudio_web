@@ -109,7 +109,6 @@ const Calculator = () => {
       savedMeals.push(mealData);
     }
     
-    savedMeals.push(mealData);
     localStorage.setItem("meals", JSON.stringify(savedMeals));
 
     // Reset form
