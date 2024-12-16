@@ -31,12 +31,10 @@ const Login = () => {
 
         const data = await response.json();
 
-        // Check if login is successful
         if (data.status === "Login Successful") {
-            // Store authentication status in localStorage
             localStorage.setItem("isAuthenticated", "true");
             localStorage.setItem("deviceid", data.deviceid);
-            // Refresh the page
+            localStorage.setItem("username", username);
             navigate("/");
             window.location.reload();
         } else {

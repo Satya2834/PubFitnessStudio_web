@@ -122,7 +122,7 @@ const Calculator = () => {
     }
 
     try {
-      const response = await fetch("https://pubfitnessstudio.pythonanywhere.com/upload_mongo", {
+      const response = await fetch("https://pubfitnessstudio.pythonanywhere.com/update_user_nutritions", {
         method: "POST",
         headers: {
         "Content-Type": "application/json",
@@ -136,6 +136,8 @@ const Calculator = () => {
 
         const data = await response.json();
 
+        console.log(data);
+        
         if (data.status === "Meal data uploaded successfully!") {
           console.log('Meal data uploaded successfully');
           alert('Meal data uploaded successfully');
