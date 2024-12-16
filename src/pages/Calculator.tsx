@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import { FoodDatabase, FoodItem } from "../utils/foodData";
+import axios from 'axios';
 
 interface MealItem extends FoodItem {
   id: string;
@@ -79,7 +80,7 @@ const Calculator = () => {
     </div>
   );
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Calculate totals
     const totals = selectedItems.reduce(
       (acc, item) => ({
@@ -99,8 +100,70 @@ const Calculator = () => {
       totals,
     };
 
-    const savedMeals = JSON.parse(localStorage.getItem("meals") || "[]");
+    const {calories, proteins, carbs, fats} = mealData.totals;
+    const upload_data = {
+      date: new Date().toLocaleDateString('en-CA'),
+      calories: calories,
+      proteins: proteins,
+      carbs: carbs,
+      fats: fats,
+      water: mealData.water
+    }
 
+    const deviceId = localStorage.getItem('deviceid');
+    const username = localStorage.getItem('username');
+
+    const userData = JSON.parse(localStorage.getItem('userProfile'));
+    const goals = {
+      caloriesGoal: userData.caloriesGoal,
+      carbsGoal: userData.carbsGoal,
+      proteinsGoal: userData.proteinsGoal,
+      fatsGoal: userData.fatsGoal
+    }
+
+    try {
+      const response = await fetch("https://pubfitnessstudio.pythonanywhere.com/upload_mongo", {
+        method: "POST",
+        headers: {
+        "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          upload_data: upload_data,
+          deviceid: deviceId,
+          username: username
+        }),
+        });
+
+        const data = await response.json();
+
+        if (data.status === "Meal data uploaded successfully!") {
+          console.log('Meal data uploaded successfully');
+          alert('Meal data uploaded successfully');
+        } else {
+          console.error('Error uploading meal data');
+          alert('Error uploading meal data');
+        }
+    } catch (error) {
+      console.error('Network error:', error);
+      alert('Network error');
+    }
+
+    // try {
+    //   const response = await axios.post('https://pubfitnessstudio.pythonanywhere.com/upload_mongo', body, {
+    //     headers: {
+    //       "Content-Type": "application/json", 
+    //     }
+    //   });
+    //   if (response.status === 200) {
+    //     console.log('Meal data uploaded successfully');
+    //     alert('Meal data uploaded successfully');
+    //   }
+    // } catch (error) {
+    //   console.error('Error uploading meal data:', error);
+    //   alert('Error uploading meal data');
+    // }
+
+    const savedMeals = JSON.parse(localStorage.getItem("meals") || "[]");
     const index = savedMeals.findIndex(item => item.date === mealData.date);
 
     if (index !== -1){
