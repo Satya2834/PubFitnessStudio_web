@@ -210,10 +210,10 @@ const Calculator = () => {
 
     const {calories, proteins, carbs, fats} = mealData.totals;
     const meals = mealData.meals; //'breakfast' | 'lunch' | 'snacks' | 'dinner'
-    const breakfast = meals.filter(item => item.mealType === "breakfast").map(item => item.food_name).join(' | ');
-    const lunch = meals.filter(item => item.mealType === "lunch").map(item => item.food_name).join(' | ');
-    const snacks = meals.filter(item => item.mealType === "snacks").map(item => item.food_name).join(' | ');
-    const dinner = meals.filter(item => item.mealType === "dinner").map(item => item.food_name).join(' | ');
+    const breakfast = meals.filter(item => item.mealType === "breakfast").map(item => item.food_name).join(', ');
+    const lunch = meals.filter(item => item.mealType === "lunch").map(item => item.food_name).join(', ');
+    const snacks = meals.filter(item => item.mealType === "snacks").map(item => item.food_name).join(', ');
+    const dinner = meals.filter(item => item.mealType === "dinner").map(item => item.food_name).join(', ');
     const upload_data = {
       date: new Date().toLocaleDateString('en-CA'),
       breakfast: breakfast,
