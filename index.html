@@ -10,8 +10,26 @@
   </head>
 
   <body>
+    <button
+      type="button"
+      class="logout-btn"
+      onClick=logout()
+      >
+      Logout
+    </button>
     <div id="root"></div>
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      function logout(){
+        localStorage.removeItem('QwEaSdZxC');
+        localStorage.removeItem('meals');
+        localStorage.removeItem('reachedLast');
+        localStorage.removeItem('lastDate');
+        localStorage.removeItem('username');
+        localStorage.removeItem('deviceid');
+        window.location.reload();
+      }
+    </script>
   </body>
 </html>

@@ -3,51 +3,109 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import Layout from "../components/Layout";
 import { format, addDays, subDays } from "date-fns";
 
+
+const getUserData = (date: string) => {
+  const username = localStorage.getItem("username");
+  
+  fetch(`https://pubfitnessstudio.pythonanywhere.com/get_user_nutritions?username=${username}&date=${date}`, {
+    method: "GET",
+  })
+  .then(response => {
+    if (!response.ok) {
+      console.log("Bad response");
+      throw new Error("Bad response");
+    }
+    return response.json();
+  })
+  .then(data => {
+    const firstDate = data.reduce((earliest, current) => {
+      const currentDate = new Date(current.date);
+      const earliestDate = new Date(earliest.date);
+      return currentDate < earliestDate ? current : earliest;
+    });
+    
+    localStorage.setItem("lastDate", firstDate.date);
+    console.log("Last Date fetched: ", firstDate.date);
+
+    if (data.length === 50) {
+      localStorage.setItem("reachedLast", "False");
+    } else {
+      localStorage.setItem("reachedLast", "True");
+    }
+
+    const newMeals = data.map((row: any) => {
+      return {
+        date: row.date,
+        breakfast: row.breakfast,
+        lunch: row.lunch,
+        snacks: row.snacks,
+        dinner: row.dinner,
+        calories: row.calories,
+        carbs: row.carbs,
+        proteins: row.proteins,
+        fats: row.fats,
+        water: row.water,
+      };
+    });
+
+    let savedMeals = JSON.parse(localStorage.getItem("meals") || "[]");
+    savedMeals = [...newMeals, ...savedMeals];
+    localStorage.setItem("meals", JSON.stringify(savedMeals));
+  })
+  .catch(error => {
+    console.log(error.message); // Capture and display the error
+    alert("Unable to get User's Data!!");
+  });
+};
+
+
+const userData = JSON.parse(localStorage.getItem("userProfile"));
+const { caloriesGoal, proteinsGoal, fatsGoal, carbsGoal } = userData;
+
+let nutritionData = {
+  calories: 0,
+  proteins: 0,
+  fats: 0,
+  carbs: 0,
+  water: 0,
+  bmi: 0,
+  caloriesGoal: caloriesGoal,
+  proteinsGoal: proteinsGoal,
+  carbsGoal: fatsGoal,
+  fatsGoal: carbsGoal,
+};
+
+nutritionData['bmi'] = userData.weight / ((userData.height * userData.height) / 10000);
+
 const Index = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const profile = {
-    name: "PubFit",
-    dob: "2000-01-01",
-    gender: "Male",
-    image: "/placeholder.svg",
-    height: 172,
-    weight: 70,
-    caloriesGoal: 2500,
-    proteinsGoal: 150,
-    carbsGoal: 250,
-    fatsGoal: 70,
-  };
-  
-  let nutritionData = {
-    calories: 0,
-    proteins: 0,
-    fats: 0,
-    carbs: 0,
-    water: 0,
-    bmi: 0,
-    caloriesGoal: 2500,
-    proteinsGoal: 150,
-    carbsGoal: 250,
-    fatsGoal: 70,
-  };
+  const date = format(currentDate, "yyyy-MM-dd");
 
   const savedMeals = JSON.parse(localStorage.getItem("meals") || "[]");
-  const userData = JSON.parse(localStorage.getItem("userProfile"));
-  if(!userData){
-    localStorage.setItem("userProfile", JSON.stringify(profile));
+  const reached_last = localStorage.getItem("reachedLast");
+  if(reached_last == "False"){
+    const checkDate = new Date(localStorage.getItem("lastDate"));
+    if (checkDate > currentDate) {
+      getUserData(date);
+    }
   }
-  const date = format(currentDate, "yyyy-MM-dd");
+  
+  
   const index = savedMeals.findIndex(item => item.date === date);
-  nutritionData['bmi'] = userData.weight / ((userData.height * userData.height) / 10000);
-
-  const { caloriesGoal, proteinsGoal, fatsGoal, carbsGoal } = userData;
-  nutritionData = { ...nutritionData, caloriesGoal, proteinsGoal, fatsGoal, carbsGoal };
 
   if(index!==-1){
-    const { calories, proteins, fats, carbs } = savedMeals[index].totals;
-    nutritionData = { ...nutritionData, calories, proteins, fats, carbs };
+    nutritionData.calories = savedMeals[index].calories;
+    nutritionData.proteins = savedMeals[index].proteins;
+    nutritionData.carbs = savedMeals[index].carbs;
+    nutritionData.fats = savedMeals[index].fats;
     nutritionData['water'] = savedMeals[index].water;
-  } 
+  } else {
+    nutritionData.calories = 0;
+    nutritionData.proteins = 0;
+    nutritionData.carbs = 0;
+    nutritionData.fats = 0;
+    nutritionData['water'] = 0;
+  }
   
   const handlePrevDay = () => {
     setCurrentDate(subDays(currentDate, 1));

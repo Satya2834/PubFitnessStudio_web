@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+.logout-btn {
+  position: absolute;
+  top: 20px; /* Adjust top position as needed */
+  right: 20px; /* Aligns button to the right */
+  padding: 10px 15px;
+  background-color: red;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

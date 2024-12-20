@@ -9,10 +9,33 @@ import Videos from "./pages/Videos";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 
+function simpleDecrypt(data: string, key: string): string {
+  const decoded = atob(data);
+  return Array.from(decoded).map((char, i) => {
+    return String.fromCharCode(char.charCodeAt(0) ^ key.charCodeAt(i % key.length));
+  }).join('');
+}
+
+function isLastLoginExpired(): boolean {
+  const encryptedDate = localStorage.getItem('QwEaSdZxC');
+  if (!encryptedDate) {
+    return false;
+  }
+  
+  const decryptedDate = simpleDecrypt(encryptedDate, "QwEaSdZxC");
+  const lastLoginDate = new Date(decryptedDate);
+  const currentDate = new Date();
+  
+  const diffTime = currentDate.getTime() - lastLoginDate.getTime();
+  const diffDays = diffTime / (1000 * 60 * 60 * 24);
+  
+  return diffDays < 7;
+}
+
 const queryClient = new QueryClient();
 
 const App = () => {
-  const isAuthenticated = localStorage.getItem("isAuthenticated");
+  const isAuthenticated = isLastLoginExpired();
 
   return (
     <QueryClientProvider client={queryClient}>

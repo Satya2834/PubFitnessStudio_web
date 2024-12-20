@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import { FoodDatabase, FoodItem } from "../utils/foodData";
-import axios from 'axios';
 
 interface MealItem extends FoodItem {
   id: string;
@@ -101,8 +100,17 @@ const Calculator = () => {
     };
 
     const {calories, proteins, carbs, fats} = mealData.totals;
+    const meals = mealData.meals; //'breakfast' | 'lunch' | 'snacks' | 'dinner'
+    const breakfast = meals.filter(item => item.mealType === "breakfast").map(item => item.food_name).join(' | ');
+    const lunch = meals.filter(item => item.mealType === "lunch").map(item => item.food_name).join(' | ');
+    const snacks = meals.filter(item => item.mealType === "snacks").map(item => item.food_name).join(' | ');
+    const dinner = meals.filter(item => item.mealType === "dinner").map(item => item.food_name).join(' | ');
     const upload_data = {
       date: new Date().toLocaleDateString('en-CA'),
+      breakfast: breakfast,
+      lunch: lunch,
+      snacks: snacks,
+      dinner: dinner,
       calories: calories,
       proteins: proteins,
       carbs: carbs,
@@ -122,6 +130,11 @@ const Calculator = () => {
     }
 
     try {
+      console.log(JSON.stringify({
+        upload_data: upload_data,
+        deviceid: deviceId,
+        username: username
+      }));
       const response = await fetch("https://pubfitnessstudio.pythonanywhere.com/update_user_nutritions", {
         method: "POST",
         headers: {
@@ -150,28 +163,13 @@ const Calculator = () => {
       alert('Network error');
     }
 
-    // try {
-    //   const response = await axios.post('https://pubfitnessstudio.pythonanywhere.com/upload_mongo', body, {
-    //     headers: {
-    //       "Content-Type": "application/json", 
-    //     }
-    //   });
-    //   if (response.status === 200) {
-    //     console.log('Meal data uploaded successfully');
-    //     alert('Meal data uploaded successfully');
-    //   }
-    // } catch (error) {
-    //   console.error('Error uploading meal data:', error);
-    //   alert('Error uploading meal data');
-    // }
-
     const savedMeals = JSON.parse(localStorage.getItem("meals") || "[]");
-    const index = savedMeals.findIndex(item => item.date === mealData.date);
+    const index = savedMeals.findIndex(item => item.date === upload_data.date);
 
     if (index !== -1){
-      savedMeals[index] = mealData;
+      savedMeals[index] = upload_data;
     } else {
-      savedMeals.push(mealData);
+      savedMeals.push(upload_data);
     }
     
     localStorage.setItem("meals", JSON.stringify(savedMeals));

@@ -71,9 +71,10 @@ const Profile = () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
+        const imageUrl = URL.createObjectURL(file);
         setProfile((prev) => ({
           ...prev,
-          image: reader.result as string,
+          image: imageUrl, //reader.result as string,
         }));
       };
       reader.readAsDataURL(file);
@@ -97,8 +98,9 @@ const Profile = () => {
   return (
     <Layout>
       <div className="p-4 max-w-xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6">Profile</h1>
-        
+        <div className="flex items-center justify-center">
+          <h1 className="text-2xl font-bold mb-6">Profile</h1>
+        </div>
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="flex flex-col items-center mb-6">
             <div className="relative">
