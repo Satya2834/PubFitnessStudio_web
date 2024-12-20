@@ -81,7 +81,6 @@ const Index = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const date = format(currentDate, "yyyy-MM-dd");
 
-  const savedMeals = JSON.parse(localStorage.getItem("meals") || "[]");
   const reached_last = localStorage.getItem("reachedLast");
   if(reached_last == "False"){
     const checkDate = new Date(localStorage.getItem("lastDate"));
@@ -90,7 +89,7 @@ const Index = () => {
     }
   }
   
-  
+  const savedMeals = JSON.parse(localStorage.getItem("meals") || "[]");
   const index = savedMeals.findIndex(item => item.date === date);
 
   if(index!==-1){
