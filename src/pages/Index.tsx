@@ -90,6 +90,7 @@ const Index = () => {
   }
   
   const savedMeals = JSON.parse(localStorage.getItem("meals") || "[]");
+  
   const index = savedMeals.findIndex(item => item.date === date);
 
   if(index!==-1){

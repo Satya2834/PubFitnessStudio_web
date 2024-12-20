@@ -7,11 +7,115 @@ interface MealItem extends FoodItem {
   mealType: 'breakfast' | 'lunch' | 'snacks' | 'dinner';
 }
 
+const calculateAge = (dob: string) => {
+  const birthDate = new Date(dob);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  
+  return age;
+};
+
 const Calculator = () => {
   const [selectedItems, setSelectedItems] = useState<MealItem[]>([]);
   const [waterIntake, setWaterIntake] = useState<number>(0);
   const [foodDatabase, setFoodDatabase] = useState<FoodItem[]>([]);
 
+  //Report
+  const [isExpanded, setIsExpanded] = useState(false);
+  const userData = JSON.parse(localStorage.getItem("userProfile"));
+  const r_height = userData.height;
+  const r_weight = userData.weight;
+  const r_gender = userData.gender;
+  const r_age = calculateAge(userData.dob);
+
+  const BMI_value = r_weight/(r_height*r_height/10000);
+  const TBW_value = 0.6 * r_weight;
+  const BMC_value = 0.04 * r_weight;
+
+  let BMR_value, FAT_value, PM_value;
+
+  if(r_gender === "Male"){
+    BMR_value = (10*r_weight) + (6.25*r_height) - (5*r_age) + 5;
+    FAT_value = (1.2*BMI_value) + (0.23*r_age) - 10.8 - 5.4;
+    PM_value = 0.2 * (r_weight * (1 - FAT_value/100));
+  } else {
+    BMR_value = (10*r_weight) + (6.25*r_height) - (5*r_age) - 161;
+    FAT_value = (1.2*BMI_value) + (0.23*r_age) - 5.4;
+    PM_value = 0.2 * (r_weight * (1 - FAT_value/100));
+  }
+
+  // BMR calculator
+  const [gender, setGender] = useState('');
+  const [weight, setWeight] = useState('');
+  const [height, setHeight] = useState('');
+  const [age, setAge] = useState('');
+  const [activity, setActivity] = useState('');
+  const [adjustment, setAdjustment] = useState('');
+  const [result, setResult] = useState('');
+
+  const getActivityFactor = (activity) => {
+    switch (activity) {
+        case 'Sedentary': return 1.2;
+        case 'Lightly active': return 1.375;
+        case 'Moderately active': return 1.55;
+        case 'Very active': return 1.725;
+        case 'Extra active': return 1.9;
+        default: return 1.2;
+    }
+  };
+
+  const getAdjustmentFactor = (adjustment) => {
+    switch (adjustment) {
+        case 'Mild weight loss': return -250;
+        case 'Weight loss': return -500;
+        case 'Extreme weight loss': return -1000;
+        case 'Mild weight gain': return 250;
+        case 'Extreme weight gain': return 500;
+        default: return -250;
+    }
+  };
+
+  const handleBMRSubmit = () => {
+    if (!gender || !weight || !height || !age || !activity || !adjustment) {
+      alert('Please fill out all fields correctly');
+      return;
+    }
+    try {
+        const weightNum = parseFloat(weight);
+        const heightNum = parseFloat(height);
+        const ageNum = parseInt(age);
+
+        const activityFactor = getActivityFactor(activity);
+        const adjustmentFactor = getAdjustmentFactor(adjustment);
+
+        let bmr;
+        if (gender === 'Male') {
+            bmr = 10 * weightNum + 6.25 * heightNum - 5 * ageNum + 5;
+        } else if (gender === 'Female') {
+            bmr = 10 * weightNum + 6.25 * heightNum - 5 * ageNum - 161;
+        }
+
+        const totalCalories = bmr * activityFactor;
+
+        let weightGainLoss = `To maintain your weight consume '${totalCalories.toFixed(2)}' kcal. \n`;
+        if (adjustmentFactor > 0) {
+            weightGainLoss += `You need to consume Extra '${adjustmentFactor.toFixed(2)}' kcal to gain weight. \n`;
+        } else {
+            weightGainLoss += `You need to reduce your consumption by '${(-adjustmentFactor).toFixed(2)}' kcal to lose weight. \n`;
+        }
+
+        setResult(`${weightGainLoss}Your daily calorie needs to be: ${(totalCalories + adjustmentFactor).toFixed(2)} kcal`);
+    } catch (error) {
+        alert('Please fill out all fields correctly');
+    }
+  };
+
+  // Calculator
   useEffect(() => {
     // Fetch the data when the component mounts
     FoodDatabase.then((data) => setFoodDatabase(data));
@@ -81,6 +185,11 @@ const Calculator = () => {
 
   const handleSubmit = async () => {
     // Calculate totals
+    console.log(selectedItems);
+    if (selectedItems.length == 0) {
+      alert('Please fill at least one field correctly');
+      return;
+    }
     const totals = selectedItems.reduce(
       (acc, item) => ({
         calories: acc.calories + item.energy_kcal,
@@ -182,6 +291,7 @@ const Calculator = () => {
   return (
     <Layout>
       <div className="max-w-2xl mx-auto p-4 space-y-8">
+
         <h1 className="text-3xl font-bold text-center text-gray-800">
           Calorie Calculator
         </h1>
@@ -210,6 +320,150 @@ const Calculator = () => {
         >
           SUBMIT MEAL DATA
         </button>
+
+        <h1 id="report_heading" className="text-2xl font-bold text-center text-gray-800 p-3 border-2 border-black-600 rounded-lg cursor-pointer"
+        onClick={() => setIsExpanded(!isExpanded)}>
+          {isExpanded ? 'REPORT' : 'CLICK TO VIEW REPORT'}
+        </h1>
+        {isExpanded && (
+        <div className="space-y-8">
+          <table className="min-w-full table-auto border-separate border border-gray-300 rounded-lg">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="px-6 py-3 text-left text-gray-700 font-medium">Metric</th>
+                <th className="px-6 py-3 text-left text-gray-700 font-medium">Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-t border-gray-200">
+                <td className="px-6 py-4 text-gray-800">BMI</td>
+                <td className="px-6 py-4 text-gray-800" >{BMI_value.toFixed(2)} kg/m<sup>2</sup> </td>
+              </tr>
+              <tr className="bg-gray-50 border-t border-gray-200">
+                <td className="px-6 py-4 text-gray-800">BMR</td>
+                <td className="px-6 py-4 text-gray-800">{BMR_value.toFixed(2)} Kcal/day</td>
+              </tr>
+              <tr className="border-t border-gray-200">
+                <td className="px-6 py-4 text-gray-800">Fat %</td>
+                <td className="px-6 py-4 text-gray-800">{FAT_value.toFixed(2)} %</td>
+              </tr>
+              <tr className="bg-gray-50 border-t border-gray-200">
+                <td className="px-6 py-4 text-gray-800">Total Body Water</td>
+                <td className="px-6 py-4 text-gray-800">{TBW_value.toFixed(2)} Liter(s)</td>
+              </tr>
+              <tr className="border-t border-gray-200">
+                <td className="px-6 py-4 text-gray-800">Protein Mass</td>
+                <td className="px-6 py-4 text-gray-800">{PM_value.toFixed(2)} kg</td>
+              </tr>
+              <tr className="bg-gray-50 border-t border-gray-200">
+                <td className="px-6 py-4 text-gray-800">Bone Mineral Content</td>
+                <td className="px-6 py-4 text-gray-800">{BMC_value.toFixed(2)} kg</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        )}
+
+        <div className="space-y-8">
+          <h1 className="text-2xl font-bold text-center mb-6">BMR Calorie Calculator</h1>
+
+          <div className="mb-4">
+            <label htmlFor="gender" className="block text-lg font-semibold mb-2">Gender</label>
+            <select
+              id="gender"
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-md"
+            >
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="weight" className="block text-lg font-semibold mb-2">Weight (kg)</label>
+            <input
+              type="number"
+              id="weight"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+              placeholder="Weight (kg)"
+              className="w-full p-3 border border-gray-300 rounded-md"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="height" className="block text-lg font-semibold mb-2">Height (cm)</label>
+            <input
+              type="number"
+              id="height"
+              value={height}
+              onChange={(e) => setHeight(e.target.value)}
+              placeholder="Height (cm)"
+              className="w-full p-3 border border-gray-300 rounded-md"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="age" className="block text-lg font-semibold mb-2">Age (years)</label>
+            <input
+              type="number"
+              id="age"
+              value={age}
+              onChange={(e) => setAge(e.target.value)}
+              placeholder="Age (years)"
+              className="w-full p-3 border border-gray-300 rounded-md"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="activity" className="block text-lg font-semibold mb-2">Activity Level</label>
+            <select
+              id="activity"
+              value={activity}
+              onChange={(e) => setActivity(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-md"
+            >
+              <option value="">Select Activity Level</option>
+              <option value="Sedentary">Sedentary</option>
+              <option value="Lightly active">Lightly active</option>
+              <option value="Moderately active">Moderately active</option>
+              <option value="Very active">Very active</option>
+              <option value="Extra active">Extra active</option>
+            </select>
+          </div>
+
+          {/* Adjustment Select */}
+          <div className="mb-4">
+            <label htmlFor="adjustment" className="block text-lg font-semibold mb-2">Adjustment</label>
+            <select
+              id="adjustment"
+              value={adjustment}
+              onChange={(e) => setAdjustment(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-md"
+            >
+              <option value="">Select Adjustment Level</option>
+              <option value="Mild weight loss">Mild weight loss</option>
+              <option value="Weight loss">Weight loss</option>
+              <option value="Extreme weight loss">Extreme weight loss</option>
+              <option value="Mild weight gain">Mild weight gain</option>
+              <option value="Extreme weight gain">Extreme weight gain</option>
+            </select>
+          </div>
+
+          <button
+            onClick={handleBMRSubmit}
+            className="w-full p-3 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600 mb-6"
+          >
+            Calculate
+          </button>
+
+          <div className="text-lg text-gray-700 mt-6">
+            {result}
+          </div>
+        </div>
       </div>
     </Layout>
   );
