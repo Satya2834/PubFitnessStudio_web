@@ -1,7 +1,7 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "calorie-crafty",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -46,7 +46,6 @@
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.3.0",
-    "exceljs": "^4.4.0",
     "fs": "^0.0.1-security",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.462.0",
@@ -83,5 +82,22 @@
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
     "vite": "^5.4.1"
-  }
+  },
+  "description": "web version of PubFitnessStudio",
+  "main": "eslint.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Satya2834/PubFitnessStudio_web.git"
+  },
+  "keywords": [
+    "PubFitnessStudio",
+    "Calorie",
+    "Tracker"
+  ],
+  "author": "Satya",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Satya2834/PubFitnessStudio_web/issues"
+  },
+  "homepage": "https://github.com/Satya2834/PubFitnessStudio_web#readme"
 }
